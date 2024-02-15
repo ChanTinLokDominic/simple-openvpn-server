@@ -13,13 +13,13 @@ set-up:
 	sudo apt update
 	sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 	sudo usermod -aG docker $(whoami) 
-	
+
 # Install Docker-Compose
 	sudo apt install -y python3-pip
 	pip install --upgrade pip
 	pip install docker==6.1.3 docker-compose==1.29.2
 
-export PUBIC_IP=$(shell wget -qO- http://ipecho.net/plain | xargs echo)
+export PUBIC_IP=$(shell curl -4 icanhazip.com)
 start:
 	docker-compose run --rm openvpn-server ovpn_genconfig -u udp://${PUBIC_IP}
 	docker-compose run --rm openvpn-server ovpn_initpki
