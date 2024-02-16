@@ -1,3 +1,7 @@
+export PUBIC_IP=$(shell curl -4 icanhazip.com)
+export CLIENT_NAME?=
+export STATIC_IP?=
+
 set-up:
 	sudo apt update
 
@@ -19,13 +23,13 @@ set-up:
 	pip install --upgrade pip
 	pip install docker==6.1.3 docker-compose==1.29.2
 
-export PUBIC_IP=$(shell curl -4 icanhazip.com)
-start:
+init:
 	docker-compose run --rm openvpn-server ovpn_genconfig -u udp://${PUBIC_IP}
 	docker-compose run --rm openvpn-server ovpn_initpki
+
+start:
 	docker-compose up -d
 
-export CLIENT_NAME?=
 create-client:
 	docker-compose run --rm openvpn-server easyrsa build-client-full ${CLIENT_NAME} nopass
 	mkdir -p -m 700 client_keys
@@ -35,6 +39,9 @@ create-client:
 remove-client:
 	rm ./client_keys/${CLIENT_NAME}.ovpn
 	docker exec openvpn-server rm /etc/openvpn/pki/private/${CLIENT_NAME}.key /etc/openvpn/pki/reqs/${CLIENT_NAME}.req /etc/openvpn/pki/issued/${CLIENT_NAME}.crt
+
+set-static-ip:
+	docker exec openvpn-server echo "ifconfig-push ${STATIC_IP} 192.168.255.1" > /etc/openvpn/ccd/${CLIENT_NAME}
 
 stop:
 	docker-compose down
